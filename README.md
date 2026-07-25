@@ -20,7 +20,7 @@
 
 ## What is MediaSite?
 
-MediaSite is a complete live broadcasting platform. Host a show, bring in remote guests via their browser (no installs), manage a guest queue, push your stream to YouTube / Facebook / TikTok simultaneously — all from one dashboard. Built for podcasters, sports shows, radio hosts, and content creators.
+MediaSite is a complete live broadcasting platform. Host a show, bring in remote guests via their browser (no installs), manage a guest queue, push your stream to YouTube / Facebook / TikTok simultaneously — all from one central **Dashboard**. Viewers can watch live on the **Broadcast Page**. Built for podcasters, sports shows, radio hosts, and content creators.
 
 ### See it in action
 
@@ -76,15 +76,24 @@ MediaSite is a complete live broadcasting platform. Host a show, bring in remote
 
 ## 🎬 How Broadcasting Works
 
-### The Host (OBS Studio)
+### The Host (Two Ways to Broadcast)
 
+MediaSite gives the host **two ways** to get video/audio into the stream:
+
+**Method 1 — OBS Virtual Camera (simplest):**
+1. Open the **Studio Control** page at `/studio/Broadcast_Studio_A1`
+2. Select **OBS Virtual Camera** as your video source and **VB-Audio Cable** as your audio
+3. Click "Start Broadcast" — your camera and mic are streamed directly to the room via WebRTC
+4. No browser source or WHIP configuration needed — just your OBS virtual devices
+
+**Method 2 — OBS Browser Source (for composed overlays):**
 The host uses **OBS Studio** (or any streaming tool that supports a browser source — Streamlabs, vMix, etc.). In OBS, add a **Browser Source** pointing at:
 
 ```
 /studio/obs-source?room=Broadcast_Studio_A1
 ```
 
-This URL displays the live composed view — host video, guest video, lower-thirds, and overlays — all auto-arranged by MediaSite. The host then streams this browser source out to YouTube, Facebook, TikTok, or wherever they want.
+This URL displays the live composed view — host video, guest video, lower-thirds, and overlays — all auto-arranged by MediaSite. The host then streams this browser source out to YouTube, Facebook, TikTok, or wherever they want. Choose this method when you need OBS overlays, scenes, and multi-source composition.
 
 > 💡 **Default room name:** The room `Broadcast_Studio_A1` is the default. You can create additional rooms for individual guests, but having a known room name makes it easy to reuse the same OBS browser source URL across shows.
 
@@ -93,6 +102,13 @@ This URL displays the live composed view — host video, guest video, lower-thir
 Guests join through a simple link — no downloads, no OBS, no software install. They click the guest link, allow camera & mic, and appear in the host's composed view automatically. MediaSite handles the WebRTC connection via LiveKit.
 
 **MediaSite is a full Progressive Web App (PWA)** — guests can join from their phone, tablet, or desktop. All they need is a good internet signal and headphones or earbuds to prevent audio feedback. The app can be installed to their home screen for quick access.
+
+**Method 3 — WHIP Ingress (pro-quality, separate video feed):**
+OBS can push a dedicated video feed directly to LiveKit via WHIP. Use the Streaming Admin panel to generate a WHIP URL, then add it as a custom RTMP/WHIP output in OBS. This gives you a clean, high-quality feed separate from Virtual Camera.
+
+### The Dashboard & Broadcast Page
+
+After logging in, the **Dashboard** is your home base — manage shows, access the Director Control panel, generate guest links, and configure streaming. Viewers watch live on the **Broadcast Page** at `/broadcast`, which shows the composed stream in real time.
 
 ### The Director
 
