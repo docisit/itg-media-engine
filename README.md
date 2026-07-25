@@ -114,6 +114,17 @@ After logging in, the **Dashboard** is your home base — manage shows, access t
 
 From the **Director Control Panel**, you manage the guest queue — mute/unmute, kick, rearrange, and control when guests appear on air. Multi-platform simulcast (YouTube + Facebook + TikTok) is managed from the same dashboard.
 
+### Django Admin (Super-User Backend)
+
+The **Django Admin** panel is the true super-user backend — add, edit, and manage every model, user, and setting in the database. Most day-to-day management happens through the frontend dashboard, but the admin panel is available for full control when needed.
+
+> ⚠️ **Change the admin URL** — by default it's at `/admin/`. Set `ADMIN_URL=your-custom-path` in your `.env` to hide it from bots and unauthorized visitors. The IP whitelist (`ADMIN_IP_WHITELIST`) adds an extra layer of protection.
+
+After deploying, run `collectstatic` to serve the admin CSS:
+```bash
+python manage.py collectstatic --noinput
+```
+
 ---
 
 ## 🚀 Quick Start
