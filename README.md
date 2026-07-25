@@ -29,11 +29,11 @@ MediaSite is a complete live broadcasting platform. Host a show, bring in remote
 
 ## ✨ Highlights
 
-| 🎙️ Guest Broadcasting | 📡 Multi-Platform Simulcast | 📅 Show Calendar & Blog |
+| 🎙️ Host & Guest Broadcasting | 📡 Multi-Platform Simulcast | 📅 Show Calendar & Blog |
 |---|---|---|
-| Guests join via browser using WebRTC / WHIP — no OBS, no downloads | Push to YouTube, Facebook, and TikTok all at once | Schedule shows, assign guests, publish episodes |
-| Director-controlled guest queue | Per-platform RTMP with auto-reconnect | Built-in blog with categories, comments, featured posts |
-| Auto picture-in-picture composition | Stream health monitoring | Public archive of past shows |
+| **Host** uses OBS Studio (or any tool with a browser source) to capture the composed stream | Push to YouTube, Facebook, and TikTok all at once | Schedule shows, assign guests, publish episodes |
+| **Guests** join via browser using WebRTC / WHIP — no software install needed | Per-platform RTMP with auto-reconnect | Built-in blog with categories, comments, featured posts |
+| Director-controlled guest queue + auto picture-in-picture | Stream health monitoring | Public archive of past shows |
 
 | 👤 Roles & Profiles | 🤖 AI Assistant | 🔒 Security |
 |---|---|---|
@@ -68,6 +68,31 @@ MediaSite is a complete live broadcasting platform. Host a show, bring in remote
               │   YouTube  ·  Facebook  · TikTok │
               └────────────────────────────────┘
 ```
+
+
+---
+
+## 🎬 How Broadcasting Works
+
+### The Host (OBS Studio)
+
+The host uses **OBS Studio** (or any streaming tool that supports a browser source — Streamlabs, vMix, etc.). In OBS, add a **Browser Source** pointing at:
+
+```
+/studio/obs-source?room=Broadcast_Studio_A1
+```
+
+This URL displays the live composed view — host video, guest video, lower-thirds, and overlays — all auto-arranged by MediaSite. The host then streams this browser source out to YouTube, Facebook, TikTok, or wherever they want.
+
+> 💡 **Default room name:** The room `Broadcast_Studio_A1` is the default. You can create additional rooms for individual guests, but having a known room name makes it easy to reuse the same OBS browser source URL across shows.
+
+### The Guests (Just a Browser)
+
+Guests join through a simple link — no downloads, no OBS, no software install. They click the guest link, allow camera & mic, and appear in the host's composed view automatically. MediaSite handles the WebRTC connection via LiveKit.
+
+### The Director
+
+From the **Director Control Panel**, you manage the guest queue — mute/unmute, kick, rearrange, and control when guests appear on air. Multi-platform simulcast (YouTube + Facebook + TikTok) is managed from the same dashboard.
 
 ---
 
