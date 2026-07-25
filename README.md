@@ -106,30 +106,8 @@ Guests join through a simple link — no downloads, no OBS, no software install.
 
 **Method 3 — WHIP Ingress (pro-quality, separate video feed):**
 OBS can push a dedicated video feed directly to LiveKit via WHIP. Use the Streaming Admin panel to generate a WHIP URL, then add it as a custom RTMP/WHIP output in OBS. This gives you a clean, high-quality feed separate from Virtual Camera.
-### 🏗️ System Architecture
 
-```mermaid
-graph TD
-    %% Ingress Section
-    subgraph Ingress [Flexible Ingress Pipeline]
-        G[Guest Feed] -->|WHIP / RTMP| FE[Frontend UI <br>#40;Dynamic Key Generation#40;]
-        H[Host Feed] -->|OBS Virtual Cam| ME[ITG Media Engine]
-        FE -->|Low-Latency Relay| ME
-    end
-
-    %% Egress Section
-    subgraph Egress [Resource-Optimized Egress]
-        ME -->|Saved Bandwidth Rerouted| MC[Multicast Engine]
-        MC -->|RTMP Push| YT[YouTube Live]
-        MC -->|RTMP Push| TW[Twitch]
-        MC -->|Direct Link| FB[Social Platforms / Custom RTMP]
-    end
-
-    classDef UI fill:#238636,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef Core fill:#1f6feb,stroke:#fff,stroke-width:2px,color:#fff;
-    class ME UI;
-    class MC Core;
-```
+---
 
 ### The Dashboard & Broadcast Page
 
