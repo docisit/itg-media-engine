@@ -88,7 +88,7 @@ TEMPLATES = [
 import dj_database_url
 
 # Use DATABASE_URL from environment, fallback to SQLite for development
-DATABASE_URL = config('DATABASE_URL', default='')
+DATABASE_URL = env('DATABASE_URL', default='')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
@@ -237,7 +237,7 @@ CHANNEL_LAYERS = {
 # --- LiveKit Section (FIXED SYNTAX) ---
 LIVEKIT_API_KEY = env('LIVEKIT_API_KEY')
 LIVEKIT_API_SECRET = env('LIVEKIT_API_SECRET')
-LIVEKIT_URL = 'wss://vdo.yourdomain.com'
+LIVEKIT_URL = env('LIVEKIT_URL')
 LIVEKIT_ROOM_NAME = env('LIVEKIT_ROOM_NAME', default='Broadcast_Studio_A1')
 LIVEKIT_API_URL= env('LIVEKIT_API_URL')
 
@@ -268,8 +268,8 @@ EMAIL_USE_TLS = True
 # Important: Ensure EMAIL_USE_SSL is False if using TLS/Port 587
 EMAIL_USE_SSL = False 
 
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='support@yourdomain.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
