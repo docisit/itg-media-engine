@@ -15,7 +15,8 @@
 <p align="center">
   <em>Main Logo Image for ITG with DOC Media App. Which runs as a full PWA App, and works on all mobile devices.</em>
 </p>
-[Check out the live PWA Media App here!](https://donoconnor.com)
+Check out the live PWA Media App here! (https://donoconnor.com)
+
 ---
 
 ## What is MediaSite?
