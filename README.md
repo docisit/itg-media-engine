@@ -10,8 +10,10 @@
 > **The all-in-one production studio for live streaming.**
 
 <p align="center">
-  <em>Screenshots & video coming soon!</em>
-  <!-- <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800"/> -->
+  <img src="docs/screenshots/mix.jpg" alt="MediaSite — Full Studio View" width="800"/>
+</p>
+<p align="center">
+  <em>Left to right: Director Control panel · OBS Studio with browser source overlay · Guest mobile view · AI Avatar pre-show</em>
 </p>
 
 ---
@@ -32,7 +34,7 @@ MediaSite is a complete live broadcasting platform. Host a show, bring in remote
 | 🎙️ Host & Guest Broadcasting | 📡 Multi-Platform Simulcast | 📅 Show Calendar & Blog |
 |---|---|---|
 | **Host** uses OBS Studio (or any tool with a browser source) to capture the composed stream | Push to YouTube, Facebook, and TikTok all at once | Schedule shows, assign guests, publish episodes |
-| **Guests** join via browser using WebRTC / WHIP — no software install needed | Per-platform RTMP with auto-reconnect | Built-in blog with categories, comments, featured posts |
+| **Guests** join via browser on desktop or mobile — no software install needed (full PWA) | Per-platform RTMP with auto-reconnect | Built-in blog with categories, comments, featured posts |
 | Director-controlled guest queue + auto picture-in-picture | Stream health monitoring | Public archive of past shows |
 
 | 👤 Roles & Profiles | 🤖 AI Assistant | 🔒 Security |
@@ -86,9 +88,11 @@ This URL displays the live composed view — host video, guest video, lower-thir
 
 > 💡 **Default room name:** The room `Broadcast_Studio_A1` is the default. You can create additional rooms for individual guests, but having a known room name makes it easy to reuse the same OBS browser source URL across shows.
 
-### The Guests (Just a Browser)
+### The Guests (Just a Browser — Desktop or Mobile)
 
 Guests join through a simple link — no downloads, no OBS, no software install. They click the guest link, allow camera & mic, and appear in the host's composed view automatically. MediaSite handles the WebRTC connection via LiveKit.
+
+**MediaSite is a full Progressive Web App (PWA)** — guests can join from their phone, tablet, or desktop. All they need is a good internet signal and headphones or earbuds to prevent audio feedback. The app can be installed to their home screen for quick access.
 
 ### The Director
 
