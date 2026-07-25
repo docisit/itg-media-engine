@@ -1,0 +1,180 @@
+# ===========================================================
+# docker-compose.yml — Professional Dockerized Media Site
+#
+# Architecture:
+#   ┌──────────┐    ┌──────────────────────────────────────────┐
+#   │  Bare     │    │            Docker Compose Stack          │
+#   │  Metal    │    │  ┌────────┐  ┌────────┐  ┌──────────┐  │
+#   │           │    │  │ Nginx  │→ │ Next.js│  │  Django   │  │
+#   │  nginx    │◄───┤  │(Inet)  │  │ :3000  │  │ :8000    │  │
+#   │ (RTMP)    │    │  │ :443   │  │        │  │ :8001    │  │
+#   │  :1936    │    │  └────────┘  └────────┘  └──────────┘  │
+#   │           │    │  ┌──────────────────────────────────┐   │
+#   │  Postgres │    │  │  LiveKit │ Egress │ Ingress      │   │
+#   │  Redis    │    │  │  (host network for WebRTC/UDP)   │   │
+#   └──────────┘    └──────────────────────────────────────────┘
+#
+# Security: All app containers run as non-root users.
+#   - Next.js → 'nextjs' user (UID 1001)
+#   - Django → 'django' user
+#   - Nginx → 'nginx' user (default in official image)
+#   - LiveKit containers → host network (bare-metal adjacend)
+#
+# Persistence:
+#   - PostgreSQL → on bare metal (not moved)
+#   - Redis → on bare metal (already running)
+#   - Media files → bind mount from host /opt/mediasite/media
+#   - Static files → bind mount from host /opt/mediasite/backend/static
+#   - SSL certs → bind mount from host /etc/ssl/mediasite
+# ===========================================================
+
+services:
+
+  # ===========================================================
+  # Nginx — Single entry point for ALL subdomains
+  #   Routes: yourdomain.com, api.yourdomain.com,
+  #           vdo.yourdomain.com, live.yourdomain.com
+  #   SSL: Let's Encrypt certs mounted as read-only volumes
+  # ===========================================================
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    container_name: mediasite-nginx
+    restart: unless-stopped
+    ports:
+      # HTTP (Let's Encrypt challenges + redirect to HTTPS)
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      # SSL certificates (read-only)
+      - /etc/ssl/mediasite:/etc/ssl/mediasite:ro
+      # Let's Encrypt ACME challenge directory
+      - /var/www/html:/var/www/html:ro
+      # Static files served directly (bypass Django for performance)
+      - /opt/mediasite/frontend/.next/static:/var/www/static/_next/static:ro
+      - /opt/mediasite/backend/static:/var/www/static/backend:ro
+      - /opt/mediasite/media:/var/www/media:ro
+    depends_on:
+      - nextjs
+      - django
+    networks:
+      - mediasite-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Security: no extra capabilities needed for HTTP/HTTPS proxy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================================
+  # Next.js — Frontend (React SSR application)
+  #   Built as standalone output for minimal image size
+  # ===========================================================
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+      # Exclude Django files from build context
+    container_name: mediasite-nextjs
+    restart: unless-stopped
+    expose:
+      - "3000"
+    env_file:
+      - .env.docker
+    environment:
+      # Docker-specific overrides
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - NODE_ENV=production
+      - WATCHPACK_POLLING=false
+    volumes:
+      # Standalone build includes everything needed
+      # Media files accessed through nginx directly, not nextjs
+      - /opt/mediasite/frontend/public:/app/public:ro
+    depends_on:
+      - django
+    networks:
+      - mediasite-net
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Health check (Dockerfile has HEALTHCHECK, but also use depends_on condition)
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ===========================================================
+  # Django — REST API (Gunicorn) + WebSocket (Daphne)
+  #   Both run in a single container via the entrypoint script.
+  #   Shares the same codebase and environment.
+  # ===========================================================
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    container_name: mediasite-django
+    restart: unless-stopped
+    expose:
+      - "8000"
+      - "8001"
+    env_file:
+      - .env.docker
+    environment:
+      - DJANGO_ENV=production
+      - DJANGO_SETTINGS_MODULE=backend.settings
+    volumes:
+      # Mount media directory for persistent file storage
+      - /opt/mediasite/media:/app/media
+      # Mount static files (for nginx to serve)
+      - /opt/mediasite/static:/app/static
+    # Access to bare-metal Redis (127.0.0.1:6379) and PostgreSQL (192.0.2.2:5432)
+    # These are accessible via the bridge network because Redis listens on 0.0.0.0
+    # or via host.docker.internal if using host gateway
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - mediasite-net
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # NOTE: LiveKit Server, Egress, and Ingress containers are
+  # managed separately in /opt/livekit/ and are NOT part of
+  # this compose stack. They're already running with host
+  # networking and connect via host.docker.internal.
+# ===========================================================
+# Networks
+# ===========================================================
+networks:
+  mediasite-net:
+    name: mediasite-network
+    driver: bridge
+    # Internal: prevents external DNS leak, forces all traffic through nginx
+    # But... we need Internet access for Redis/Postgres on bare metal,
+    # and for Django to call external APIs.
+    # So we use a regular bridge network (not internal).
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

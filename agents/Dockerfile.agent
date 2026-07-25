@@ -1,0 +1,53 @@
+# ===========================================================
+# Dockerfile.agent — LiveKit AI Avatar Agent
+# ===========================================================
+# A text-only data-channel worker that processes guest conversations
+# via Ollama LLM and communicates through LiveKit data channels.
+#
+# Build & Run:
+#   docker build -f agents/Dockerfile.agent -t mediasite-agent .
+#   docker run --network host -e LIVEKIT_URL=ws://... -e LIVEKIT_API_KEY=... mediasite-agent
+#
+# Or add to docker-compose.dev.yml / docker-compose.yml
+# ===========================================================
+
+FROM python:3.11-slim-bookworm
+
+# Prevent .pyc files and buffer flushing
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy agent code and backend modules (needed for Django settings/models)
+COPY agents/avatar_agent.py ./agents/
+COPY agents/avatar_agent_voice_pipeline.py ./agents/
+COPY backend/ ./backend/
+COPY members/ ./members/
+COPY manage.py .
+
+# Create non-root user
+RUN groupadd -r agent && useradd -r -g agent -d /app agent && \
+    chown -R agent:agent /app
+
+USER agent
+
+# The agent uses LiveKit's CLI runner with environment variables
+# Set these in docker-compose or via docker run:
+#   LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+#   BACKEND_URL (default: http://django:8000)
+#   OLLAMA_URL (default: http://localhost:11434)
+#   OLLAMA_MODEL (default: llama3.2:1b)
+
+CMD ["python", "-m", "agents.avatar_agent"]

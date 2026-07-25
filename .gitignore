@@ -1,0 +1,155 @@
+# ===========================================================
+# 🚨 SECURITY — NEVER COMMIT SECRETS TO PUBLIC REPO
+# ===========================================================
+
+# --- Environment files (contain passwords, API keys, secrets) ---
+
+.env
+.env.production
+.env.docker
+.env.local
+.env.local.tmp
+.env.*.local
+.env.production.local
+
+# --- PM2 configs (contain server IPs, passwords, paths) ---
+ecosystem.config.js
+ecorsystem.config.js
+ecosystem.local.config.js
+ecosystem.*.config.js
+pm2-*.config.js
+pm2-start-all.js
+
+# --- Agent configs (contain API keys) ---
+agents/docker-compose.yml
+agents/pm2-avatar-agent.config.js
+
+# --- Server config files ---
+mcp_servers.json
+Big-Time.js
+Lil-Dawg.js
+.clinerules
+
+# --- LiveKit config backups (contain secrets) ---
+livkit_config/
+
+# --- Production backup configs ---
+etc-production/
+config/
+
+# --- Firewall scripts (server-specific, contain IPs + credentials) ---
+*firewall*.sh
+*firewalld*.sh
+
+# --- Deployment scripts (contain server IPs, SSH usernames, keys) ---
+scripts/deploy-*.sh
+scripts/copy-*-to-production.sh
+scripts/docker-*.sh
+scripts/start_egress.*
+scripts/stop_egress.*
+
+# --- But keep the Docker entrypoint (needed for builds) ---
+!scripts/docker-entrypoint.django.sh
+
+# --- Test / debug scripts (contain local IPs, paths, credentials) ---
+_debug_profile.py
+_fix_db_constraints.py
+_test_create_profile.py
+_test_final.py
+test_*.py
+test_*.sh
+fix_*.py
+update_connection_details.py
+TEST_LIVEKIT_API_KEY.md
+
+# --- Fix/one-off scripts ---
+DEPLOY_BLOG_UPDATES.md
+DEPLOY_FIXES.sh
+DEPLOYMENT_CHECKLIST.md
+DOCKER_MIGRATION.md
+EGRESS_FIX_DEPLOYMENT.md
+FINAL_GUEST_ROOM_DEPLOY.sh
+FIX_CORS_ISSUE.md
+fix_nginx.py
+fix_vdo_nginx.py
+fix_webrtc.py
+GUEST_PAGE_IMPROVEMENTS_DEPLOYMENT.md
+LIVEKIT_TROUBLESHOOTING.md
+NGINX_CORS_FIXES_SUMMARY.md
+OBS_RTMP_EGRESS_SETUP.md
+OBS_WHIP_INGRESS_SETUP.md
+WHIP_FIX_PLAN.md
+CORS_SUMMARY.md
+TEST_MIDDLEWARE_FIX.sh
+
+# --- Temporary / debug files ---
+tmp/
+
+# --- Windows cruft (alternate data stream metadata) ---
+*:Zone.Identifier
+
+# --- Media files (user-uploaded content) ---
+media/
+static/
+
+# --- SQLite database ---
+db.sqlite3
+*.sqlite3
+
+# --- Redis dump ---
+dump.rdb
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# --- Node ---
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- TypeScript build output ---
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Logs ---
+*.log
+logs/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Project-specific ---
+memory/
+*.db
+.todo
+task_progress.md
+webrtc-file-list.txt
+
+# --- Utility scripts (not part of the app) ---
+frontend/rebuild.sh
+ffmpeg_portrait_composition.sh
+
+# --- Docker volumes (generated at runtime) ---
+docker/volumes/
+
+# --- Prevent accidental parent directory commits ---
+media-site/

@@ -1,0 +1,65 @@
+# Version control
+.git
+.gitignore
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+
+# Environment files
+.env
+.env.*.tmp
+
+# Database
+db.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker/
+
+# Media (mounted as separate volume, not copied)
+media/
+
+# Static (generated at build time)
+static/
+
+# Frontend (separate container)
+frontend/
+
+# Node
+node_modules/
+
+# Scripts
+scripts/
+
+# Config
+config/
+etc-production/
+
+# Tests
+test_*.py
+_test_*.py
+
+# Other
+*.md
+*.tmp
+*.log
+pm2*.js
+ecosystem*.js

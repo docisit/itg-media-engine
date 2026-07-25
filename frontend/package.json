@@ -1,0 +1,52 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@datadog/browser-logs": "^6.33.0",
+    "@livekit/components-react": "^2.9.20",
+    "@livekit/components-styles": "^1.2.0",
+    "@livekit/krisp-noise-filter": "^0.3.4",
+    "@livekit/track-processors": "^0.7.2",
+    "@marsidev/react-turnstile": "^1.5.2",
+    "@types/jwt-decode": "^2.2.1",
+    "axios": "^1.13.5",
+    "browser-image-compression": "^2.0.2",
+    "crypto-js": "^4.2.0",
+    "framer-motion": "^12.38.0",
+    "jwt-decode": "^4.0.0",
+    "livekit-client": "^2.20.1",
+
+    "livekit-server-sdk": "^2.15.2",
+    "lucide-react": "^0.564.0",
+    "next": "^16.2.5",
+    "next-auth": "^4.24.13",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hot-toast": "^2.6.0",
+    "react-icons": "^5.6.0",
+    "redis": "^5.12.1",
+    "simple-peer": "^9.11.1",
+    "socket.io-client": "^4.8.3",
+    "tinykeys": "^3.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/simple-peer": "^9.11.9",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

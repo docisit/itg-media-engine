@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* 1. Set the global High-Tech Colors */
+:root {
+  --background: #000000; /* Pure Black */
+  --foreground: #ffffff; /* White Text */
+}
+
+/* 2. Define the High-Tech Theme (Tailwind v4 style) */
+:root {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-neon-blue: #06b6d4; /* Bright Cyan/Blue */
+  
+  /* Create the High-Tech Glow Shadow */
+  --shadow-neon: 0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+/* 3. Global Body Styling */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  margin: 0;
+  transition: background-color 0.3s ease;
+}
+
+/* 4. Smooth Hover Transitions */
+* {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Guest Room */
+.mirror {
+  transform: scaleX(-1);
+}
+
+/* Responsive video container for guest room */
+.responsive-video-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  overflow: hidden;
+  padding: 20px; /* Add padding to prevent video from touching edges */
+}
+
+.adaptive-video {
+  max-width: calc(100% - 40px); /* Account for padding */
+  max-height: calc(100% - 40px); /* Account for padding */
+  object-fit: contain;
+  border-radius: 8px; /* Optional: add slight rounding */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Optional: add subtle shadow */
+}
+
+/* Portrait orientation */
+@media (orientation: portrait) {
+  .adaptive-video {
+    width: auto;
+    height: calc(100% - 40px);
+  }
+}
+
+/* Landscape orientation */
+@media (orientation: landscape) {
+  .adaptive-video {
+    width: calc(100% - 40px);
+    height: auto;
+  }
+}
+
+/* For very large screens, limit maximum size */
+@media (min-width: 1920px) {
+  .adaptive-video {
+    max-width: 90%;
+    max-height: 90%;
+  }
+}
+
+/* Guest controls overlay */
+.guest-controls-overlay {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.guest-controls-overlay .controls-container {
+  display: flex;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px;
+  pointer-events: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Performance optimization warning */
+.low-cpu-warning {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 165, 0, 0.9);
+  color: black;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 165, 0, 0.5);
+}

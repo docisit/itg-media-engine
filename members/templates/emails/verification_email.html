@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - DOC Show</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DOC Show</div>
+            <h1>Verify Your Email</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{ guest_name }},</h2>
+            
+            <p>Thank you for submitting your guest application to the DOC Show! We're excited to review your submission.</p>
+            
+            <p>To complete your application and ensure we can contact you, please verify your email address by clicking the button below:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="button">Verify Email Address</a>
+            </div>
+            
+            <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+                {{ verification_url }}
+            </p>
+            
+            <p><strong>Important:</strong> Your application will not be reviewed until your email is verified.</p>
+            
+            <p>If you didn't submit an application to the DOC Show, please ignore this email.</p>
+            
+            <p>Best regards,<br>The DOC Show Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 DOC Show. All rights reserved.</p>
+            <p>This email was sent to you because you submitted a guest application on our website.</p>
+            <p>If you have any questions, please contact us at doc@yourdomain.com</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+# ===========================================================
+# Dockerfile.django — Multi-stage build for security & size
+#   Stage 1: Builder (dependencies, wheels)
+#   Stage 2: Runtime (distroless-style, non-root user)
+# ===========================================================
+
+# ---- Stage 1: Builder ----
+FROM python:3.11-slim-bookworm AS builder
+
+# Prevent Python from writing .pyc files & buffering
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /build
+
+# Install build dependencies (cleaned up after)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for layer caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user --upgrade pip && \
+    pip install --no-cache-dir --user -r requirements.txt
+
+# ---- Stage 2: Runtime ----
+FROM python:3.11-slim-bookworm AS runtime
+
+# Security: create non-root user
+RUN groupadd -r django && useradd -r -g django -d /app -s /sbin/nologin django
+
+# Runtime dependencies only (no build tools)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages from builder
+COPY --from=builder /root/.local /usr/local
+RUN pip install --no-cache-dir --upgrade pip
+
+WORKDIR /app
+
+# ===========================================================
+# Production stage (default)
+#   Requires .env.production in build context
+# ===========================================================
+FROM runtime AS production
+
+# Copy application code
+COPY backend/ ./backend/
+COPY members/ ./members/
+COPY manage.py .
+# Copy env file (must exist in build context for prod builds)
+# Django settings.py looks for .env.production when DJANGO_ENV=production
+COPY .env.production .env.production
+
+# Collect static files
+RUN mkdir -p /app/static && \
+    python manage.py collectstatic --noinput --clear 2>/dev/null || true
+
+# Create media directory with proper permissions
+RUN mkdir -p /app/media && \
+    chown -R django:django /app
+
+# Copy entrypoint
+COPY scripts/docker-entrypoint.django.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')" || exit 1
+
+EXPOSE 8000 8001
+USER django
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# ===========================================================
+# Development stage (used by docker-compose.dev.yml)
+#   No .env.production needed — reads env vars at runtime
+# ===========================================================
+FROM runtime AS dev
+
+# Copy application code
+COPY backend/ ./backend/
+COPY members/ ./members/
+COPY manage.py .
+
+# Create directories
+RUN mkdir -p /app/static /app/media && \
+    chown -R django:django /app
+
+# Copy entrypoint
+COPY scripts/docker-entrypoint.django.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')" || exit 1
+
+EXPOSE 8000 8001
+USER django
+ENTRYPOINT ["docker-entrypoint.sh"]

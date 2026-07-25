@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations! Your Application Has Been Approved</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .celebrate {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DOC Show</div>
+            <h1>Congratulations!</h1>
+        </div>
+        
+        <div class="content">
+            <div class="celebrate">🎉</div>
+            
+            <h2>Hello {{ guest_name }},</h2>
+            
+            <p>We're thrilled to inform you that your guest application has been <strong>APPROVED</strong>!</p>
+            
+            <p>Welcome to the DOC Show family! We're excited to have you join us and share your story with our audience.</p>
+            
+            <h3>What Happens Next:</h3>
+            <ol>
+                <li><strong>Guest Portal Access:</strong> You'll receive a separate email with your guest portal login credentials</li>
+                <li><strong>Schedule Coordination:</strong> Our team will contact you to schedule your appearance</li>
+                <li><strong>Technical Setup:</strong> You'll get access to our VDO.Ninja room with secure Coturn credentials</li>
+                <li><strong>Pre-Show Briefing:</strong> We'll schedule a quick briefing before your appearance</li>
+            </ol>
+            
+            <p><strong>Important:</strong> Please keep an eye on your email for follow-up communications from our team.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <p style="font-size: 18px; font-weight: bold; color: #059669;">
+                    We look forward to having you on the show!
+                </p>
+            </div>
+            
+            <p>If you have any questions before we contact you, feel free to reply to this email.</p>
+            
+            <p>Best regards,<br>The DOC Show Team</p>
+            
+            <p style="font-size: 12px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <strong>Contact:</strong> {{ admin_contact }}<br>
+                <strong>Website:</strong> https://yourdomain.com
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 DOC Show. All rights reserved.</p>
+            <p>This email was sent to you because your guest application was approved.</p>
+        </div>
+    </div>
+</body>
+</html>

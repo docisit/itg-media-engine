@@ -1,0 +1,50 @@
+# Version control
+.git
+.gitignore
+
+# Node
+node_modules/
+.next/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker/
+
+# Environment
+.env
+.env.*.tmp
+
+# Python (backend separate container)
+backend/
+members/
+manage.py
+requirements.txt
+*.py
+venv/
+.venv/
+
+# Media
+media/
+
+# Config
+config/
+etc-production/
+
+# Tests
+test_*.py
+
+# Other
+*.md
+*.tmp
+*.log
+pm2*.js
+ecosystem*.js

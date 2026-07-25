@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background Badge (Optional, remove for transparent) -->
+  <circle cx="50" cy="50" r="48" fill="#1E1E2E" stroke="#FF3366" stroke-width="2"/>
+  
+  <!-- The Headset / Broadcast Mic -->
+  <path d="M35,55 L35,45 C35,35 45,25 55,25 C65,25 70,32 70,40" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M70,40 L70,55 C70,65 60,70 50,70" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="35" cy="55" r="6" fill="none" stroke="#FF3366" stroke-width="4"/>
+  
+  <!-- The "Play" Triangle overlay (The Game aspect) -->
+  <polygon points="58,48 48,42 48,54" fill="#FF3366"/>
+  
+  <!-- DOC Initials subtly embedded -->
+  <text x="50" y="88" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#FFFFFF" text-anchor="middle" letter-spacing="1">DOC</text>
+</svg>

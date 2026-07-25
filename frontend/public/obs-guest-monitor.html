@@ -1,0 +1,177 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { LiveKitRoom, VideoConference, useTracks, TrackReference } from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import '@livekit/components-styles';
+
+export const dynamic = 'force-dynamic';
+
+export default function GuestJoinPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const roomId = (params?.roomId as string) || 'Broadcast_Studio_A1';
+
+  const preferredVideoId = searchParams.get('video');
+  const preferredAudioId = searchParams.get('audio');
+  const initialName = searchParams.get('name') || '';
+  
+  const [guestName, setGuestName] = useState(initialName);
+  const [isJoined, setIsJoined] = useState(!!initialName);
+  const [token, setToken] = useState<string | null>(null);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+
+  // Fetch LiveKit token
+  useEffect(() => {
+    if (isJoined && guestName) {
+      fetchLivekitToken();
+    }
+  }, [isJoined, guestName]);
+
+  async function fetchLivekitToken() {
+    setIsConnecting(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/livekit/guest-token/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          room_name: roomId,
+          participant_name: guestName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch LiveKit token: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.token && data.url) {
+        setToken(data.token);
+        setServerUrl(data.url);
+        console.log('Token received, connecting to:', data.url);
+      } else {
+        throw new Error('Invalid LiveKit response: Missing token or url');
+      }
+    } catch (error) {
+      console.error('Error fetching LiveKit token:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsConnecting(false);
+    }
+  }
+
+  const handleJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (guestName.trim()) setIsJoined(true);
+  };
+
+  if (!isJoined) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <form onSubmit={handleJoin} className="w-full max-w-md bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl">
+          <div className="mb-6 text-center">
+            <div className="inline-block px-3 py-1 bg-cyan-500/10 text-cyan-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-cyan-500/20 mb-2">
+              Identity Check
+            </div>
+            <h1 className="text-2xl font-black uppercase tracking-tighter">Enter Athlete Name</h1>
+          </div>
+          <input
+            type="text"
+            placeholder="e.g. LeBron James"
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            className="w-full p-4 bg-black border border-zinc-700 rounded-xl mb-4 text-white focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
+            required
+          />
+          <button type="submit" className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-xl hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/10">
+            Join Studio
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 max-w-md">
+          <h2 className="text-red-400 font-bold mb-2">Connection Error</h2>
+          <p className="text-sm text-red-300">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-zinc-800 rounded-lg text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!token || !serverUrl) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-zinc-400">Connecting to studio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Main Video Area */}
+      <div className="flex-1 relative bg-zinc-950">
+        <LiveKitRoom
+          serverUrl={serverUrl}
+          token={token}
+          connect={true}
+          audio={true}
+          video={true}
+          onConnected={() => {
+            console.log('Connected to room');
+            setConnectionStatus('connected');
+          }}
+          onDisconnected={() => {
+            console.log('Disconnected from room');
+            setConnectionStatus('disconnected');
+          }}
+          className="w-full h-full"
+        >
+          {/* Show all participants including coach's OBS feed */}
+          <VideoConference />
+        </LiveKitRoom>
+      </div>
+
+      {/* Status Bar */}
+      <div className="p-4 bg-zinc-900/80 backdrop-blur-xl border-t border-white/5">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center font-bold text-xs">
+              {guestName.charAt(0)}
+            </div>
+            <div>
+              <h2 className="font-bold text-sm">{guestName}</h2>
+              <p className="text-xs text-zinc-400">
+                {connectionStatus === 'connected' ? 'Connected' : 'Connecting...'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

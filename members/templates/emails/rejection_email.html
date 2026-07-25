@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update on Your Guest Application - DOC Show</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .reason-box {
+            background-color: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DOC Show</div>
+            <h1>Update on Your Application</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello {{ guest_name }},</h2>
+            
+            <p>Thank you for your interest in being a guest on the DOC Show. We appreciate the time you took to submit your application.</p>
+            
+            <p>After careful review, we regret to inform you that we are unable to move forward with your application at this time.</p>
+            
+            {% if reason %}
+            <div class="reason-box">
+                <p><strong>Reason:</strong> {{ reason }}</p>
+            </div>
+            {% endif %}
+            
+            <p>This decision does not reflect on your qualifications or potential as a guest. We receive many applications and have to make difficult choices based on our current programming needs and schedule.</p>
+            
+            <p>We encourage you to:</p>
+            <ul>
+                <li>Continue following the DOC Show for future opportunities</li>
+                <li>Consider reapplying in 3-6 months</li>
+                <li>Engage with our content and community</li>
+            </ul>
+            
+            <p>We wish you the best in your future endeavors and hope you'll continue to be part of our community.</p>
+            
+            <p>If you have any questions about this decision, you can reach out to us at {{ admin_contact }}.</p>
+            
+            <p>Best regards,<br>The DOC Show Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 DOC Show. All rights reserved.</p>
+            <p>This email was sent regarding your guest application on our website.</p>
+            <p>If you have any questions, please contact us at {{ admin_contact }}</p>
+        </div>
+    </div>
+</body>
+</html>

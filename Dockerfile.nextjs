@@ -1,0 +1,89 @@
+# ===========================================================
+# Dockerfile.nextjs — Multi-stage build for security & size
+#   Stage 1: Dependencies (npm ci)
+#   Stage 2: Builder (next build)
+#   Stage 3: Runtime (standalone output, non-root user)
+# ===========================================================
+
+# ---- Stage 1: Dependencies ----
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Copy package files first for layer caching
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --only=production --ignore-scripts && \
+    cp -R node_modules /prod_modules && \
+    npm ci --ignore-scripts
+
+# ---- Stage 2: Builder ----
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copy production deps and full deps
+COPY --from=deps /prod_modules node_modules
+COPY --from=deps /app/node_modules /app/node_modules
+
+# Copy source code
+COPY frontend/ .
+
+# Build the Next.js standalone output
+RUN npm run build
+
+# ---- Stage 3: Production Runtime ----
+# ===========================================================
+# Production stage (default)
+#   Standalone build — minimal image, no dev deps
+# ===========================================================
+FROM node:20-alpine AS production
+
+# Security: create non-root user
+RUN addgroup -g 1001 -S nextjs && \
+    adduser -S -u 1001 -G nextjs nextjs
+
+WORKDIR /app
+
+# Copy standalone build output (includes only needed node_modules)
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+# Set correct permissions
+RUN chown -R nextjs:nextjs /app
+
+# Security: run as non-root
+USER nextjs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
+# Expose Next.js port
+EXPOSE 3000
+
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]
+
+# ===========================================================
+# Development stage (used by docker-compose.dev.yml)
+#   Runs next dev with hot reload, no separate build step
+# ===========================================================
+FROM node:20-alpine AS dev
+
+RUN addgroup -g 1001 -S nextjs && \
+    adduser -S -u 1001 -G nextjs nextjs
+
+WORKDIR /app
+
+# Copy full source for dev
+COPY --from=deps /app/node_modules ./node_modules
+COPY frontend/ .
+
+RUN chown -R nextjs:nextjs /app
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

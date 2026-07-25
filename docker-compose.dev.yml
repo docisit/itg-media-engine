@@ -1,0 +1,157 @@
+# ===========================================================
+# docker-compose.dev.yml — Self-Contained Development Stack
+# ===========================================================
+# Everything you need in one command:
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# Includes: PostgreSQL, Redis, Nginx, Django API, Next.js frontend
+# Does NOT include LiveKit (requires separate setup — see docs)
+#
+# Production: Use docker-compose.yml with your own bare-metal
+#             PostgreSQL, Redis, LiveKit, and SSL certificates.
+# ===========================================================
+
+services:
+
+  # ===========================================================
+  # PostgreSQL — Development database
+  # ===========================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: mediasite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: media_db
+      POSTGRES_USER: mediasite
+      POSTGRES_PASSWORD: mediasite_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mediasite -d media_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================
+  # Redis — Development cache / WebSocket backend
+  # ===========================================================
+  redis:
+    image: redis:7-alpine
+    container_name: mediasite-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================
+  # Django — REST API (Gunicorn :8000) + WebSocket (Daphne :8001)
+  # ===========================================================
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+      target: dev  # dev stage skips .env.production COPY
+    container_name: mediasite-django
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    environment:
+      - DJANGO_ENV=development
+      - DJANGO_SETTINGS_MODULE=backend.settings
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,django
+      - DATABASE_URL=postgres://mediasite:mediasite_dev@postgres:5432/media_db
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=
+      - LIVEKIT_API_KEY=dev-livekit-key
+      - LIVEKIT_API_SECRET=dev-livekit-secret
+      - LIVEKIT_URL=ws://localhost:7880
+      - LIVEKIT_API_URL=http://localhost:7880
+      - INTERNAL_API_SECRET=dev-internal-secret
+      - ADMIN_URL=admin/
+      - ADMIN_IP_WHITELIST=127.0.0.1
+      - FRONTEND_URL=http://localhost:3000
+      - EMAIL_HOST=localhost
+      - EMAIL_PORT=1025
+      - EMAIL_USE_TLS=False
+      - EMAIL_HOST_USER=
+      - EMAIL_HOST_PASSWORD=
+      - DEFAULT_FROM_EMAIL=noreply@localhost
+      - TURNSTILE_SITE_KEY=
+      - TURNSTILE_SECRET_KEY=
+      - DeepSeek_API_COACH=
+      - DeepSeek_API_ATHLETE=
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mediasite-net
+
+  # ===========================================================
+  # Next.js — Frontend (development mode with hot reload)
+  # ===========================================================
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+      target: dev
+    container_name: mediasite-nextjs
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_LIVEKIT_URL=ws://localhost:7880
+      - LIVEKIT_API_KEY=dev-livekit-key
+      - LIVEKIT_API_SECRET=dev-livekit-secret
+      - LIVEKIT_URL=ws://localhost:7880
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=dev-nextauth-secret-change-me
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    depends_on:
+      - django
+    networks:
+      - mediasite-net
+
+  # ===========================================================
+  # Nginx — Reverse proxy (optional in dev, included for consistency)
+  # ===========================================================
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    container_name: mediasite-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - nextjs
+      - django
+    networks:
+      - mediasite-net
+
+networks:
+  mediasite-net:
+    name: mediasite-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
