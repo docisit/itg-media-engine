@@ -10,7 +10,7 @@
 > **The all-in-one production studio for live streaming.**
 
 <p align="center">
-  <img src="docs/screenshots/mix.jpg" alt="MediaSite — Full Studio View" width="800"/>
+  <img src="docs/screenshots/FACBOOKLOGO.png" alt="WebRTC PWA MediaSite Full Logo" width="800"/>
 </p>
 <p align="center">
   <em>Left to right: Director Control panel · OBS Studio with browser source overlay · Guest mobile view · AI Avatar pre-show</em>
@@ -288,5 +288,8 @@ Please keep the copyright logo and attribution intact.
 - [Discussions](https://github.com/docisit/itg-media-engine/discussions)
 
 ---
+<p align="center">
+  <img src="docs/screenshots/mix.jpg" alt="Look at how it works, with screenshots while in use" width="800"/>
+</p>
 
 *Built with ❤️ for content creators everywhere. © Don O'Connor — keep the logo, share the code.*
