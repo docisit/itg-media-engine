@@ -291,8 +291,26 @@ Please keep the copyright logo and attribution intact.
 - [Discussions](https://github.com/docisit/itg-media-engine/discussions)
 
 ---
+
 <p align="center">
   <img src="docs/screenshots/mix.jpg" alt="Look at how it works, with screenshots while in use" width="800"/>
 </p>
+## 📚 Wiki Pages
+
+| Page | Description |
+|------|-------------|
+| [📦 Installation](installation.md) | Prerequisites, Docker dev stack, bare-metal setup |
+| [⚙️ Configuration](configuration.md) | Environment variables, `.env` setup, feature flags |
+| [🌐 LiveKit Setup](livekit.md) | WebRTC infrastructure — Cloud vs. self-hosted |
+| [🎬 Broadcasting Guide](broadcasting.md) | Host setup, guest joining, studio page, broadcast page |
+| [🎮 Director Control](director-control.md) | Guest queue, mute/unmute, multi-platform simulcast |
+| [👤 User Roles & Profiles](users.md) | Roles, registration, COPPA age gate |
+| [🏅 Sports Module](sports-module.md) | Athlete stats, drills, leaderboards |
+| [🤖 AI Assistant](ai-assistant.md) | Avatar agent, FAQ chatbot, Ollama setup |
+| [🔧 Admin Panel](admin.md) | Django admin, model management, IP whitelist |
+| [🚀 Deployment](deployment.md) | Production Nginx + SSL, Docker stack, PM2 ecosystem |
+| [❓ Troubleshooting & FAQ](troubleshooting.md) | Common issues, WebRTC debugging, FAQs |
+
+---
 
 *Built with ❤️ for content creators everywhere. © Don O'Connor — keep the logo, share the code.*
