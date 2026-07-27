@@ -1,4 +1,4 @@
-# MediaSite — Live Broadcasting & Guest Management Platform
+# DOCs Media Engine — Live Broadcasting & Guest Management Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![LiveKit](https://img.shields.io/badge/WebRTC-LiveKit-00E5FF?logo=livekit)](https://livekit.io)
