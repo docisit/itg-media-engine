@@ -62,7 +62,8 @@ from members.blog_views import (
     BlogCommentCreateView, BlogCommentAdminListView,
     BlogCommentApproveView, BlogCommentDeleteView,
     BlogCategoriesView, BlogFeaturedPostView,
-    BlogPostLikeToggleView, BlogPostLikeStatusView
+    BlogPostLikeToggleView, BlogPostLikeStatusView,
+    BlogPostImageListCreateView, BlogPostImageDetailView
 )
 from members.streaming_views import (
     StreamingPlatformViewSet, StreamingSessionViewSet,
@@ -73,6 +74,11 @@ from members.webrtc_views import (
     WebRTCRoomViewSet, WebRTCParticipantViewSet, WebRTCSignalViewSet,
     LiveKitIngressView, LiveKitStreamKeyView, LiveKitEgressView,
     LiveKitConnectionCheckView, GuestRTMPEgressView, RoomStatusByNameView,
+)
+from members.webauthn_views import (
+    register_passkey_begin, register_passkey_complete,
+    authenticate_passkey_begin, authenticate_passkey_complete,
+    manage_passkeys,
 )
 from backend.custom_jwt import CustomTokenObtainPairView
 
@@ -182,6 +188,10 @@ urlpatterns = [
     path('api/admin/blog/comments/<int:comment_id>/approve/', BlogCommentApproveView.as_view(), name='admin_blog_comment_approve'),
     path('api/admin/blog/comments/<int:comment_id>/delete/', BlogCommentDeleteView.as_view(), name='admin_blog_comment_delete'),
 
+    # Blog Admin — Image Management
+    path('api/admin/blog/posts/<int:post_id>/images/', BlogPostImageListCreateView.as_view(), name='admin_blog_images'),
+    path('api/admin/blog/images/<int:image_id>/', BlogPostImageDetailView.as_view(), name='admin_blog_image_detail'),
+
     # Media Track View (lightweight)
     path('api/media/<int:pk>/track-view/', MediaTrackView.as_view(), name='media_track_view'),
 
@@ -224,6 +234,14 @@ urlpatterns = [
     path('api/avatar/guest-info/', AvatarGuestInfoView.as_view(), name='avatar_guest_info'),
     path('api/avatar/past-conversations/', AvatarPastConversationsView.as_view(), name='avatar_past_conversations'),
     path('api/admin/avatar/conversations/', AvatarConversationsForShowView.as_view(), name='admin_avatar_conversations'),
+
+    # SITE CHAT
+    # WEBAUTHN / PASSKEYS — Biometric Authentication
+    path('api/webauthn/register/begin/', register_passkey_begin, name='webauthn_register_begin'),
+    path('api/webauthn/register/complete/', register_passkey_complete, name='webauthn_register_complete'),
+    path('api/webauthn/auth/begin/', authenticate_passkey_begin, name='webauthn_auth_begin'),
+    path('api/webauthn/auth/complete/', authenticate_passkey_complete, name='webauthn_auth_complete'),
+    path('api/webauthn/passkeys/', manage_passkeys, name='manage_passkeys'),
 
     # SITE CHAT
     path('api/site-chat/config/', SiteChatConfigView.as_view(), name='site_chat_config'),

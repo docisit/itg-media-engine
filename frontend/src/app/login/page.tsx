@@ -3,6 +3,7 @@ import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
+import { SignInWithPasskeyButton } from '@/components/PasskeyAuth';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -71,6 +72,20 @@ export default function LoginPage() {
           >
             Sign In
           </button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white px-4 text-gray-500">or</span>
+            </div>
+          </div>
+
+          {/* Passkey Sign In */}
+          <SignInWithPasskeyButton className="flex w-full items-center justify-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-100 disabled:opacity-50" />
+
           <div className="text-center text-sm text-gray-600">
             <p>
               Don't have an account?{' '}

@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from .models import BlogPost, BlogComment
+from .models import BlogPost, BlogComment, BlogPostImage
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,38 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # SERIALIZERS
 # ============================================================================
+
+class BlogPostImageSerializer(serializers.ModelSerializer):
+    """Serializer for individual blog post images"""
+    image_url = serializers.SerializerMethodField()
+    compressed_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BlogPostImage
+        fields = ['id', 'image_url', 'compressed_url', 'thumbnail_url', 'caption', 'order']
+
+    def _resolve_url(self, obj, field_name):
+        request = self.context.get('request')
+        try:
+            f = getattr(obj, field_name, None)
+            if f and hasattr(f, 'url'):
+                if request:
+                    return request.build_absolute_uri(f.url)
+                return f.url
+        except Exception:
+            pass
+        return None
+
+    def get_image_url(self, obj):
+        return self._resolve_url(obj, 'image')
+
+    def get_compressed_url(self, obj):
+        return self._resolve_url(obj, 'compressed')
+
+    def get_thumbnail_url(self, obj):
+        return self._resolve_url(obj, 'thumbnail')
+
 
 class BlogCommentSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
@@ -110,6 +142,7 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
     reading_time = serializers.ReadOnlyField()
     tags_list = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
     
     class Meta:
         model = BlogPost
@@ -120,7 +153,7 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
             'category', 'tags', 'tags_list',
             'is_published', 'published_at', 'allow_comments',
             'view_count', 'comment_count', 'like_count', 'reading_time',
-            'comments', 'created_at', 'updated_at'
+            'comments', 'images', 'created_at', 'updated_at'
         ]
         read_only_fields = ['author', 'view_count', 'created_at', 'updated_at']
     
@@ -173,6 +206,11 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
         """Get approved comments for the post"""
         comments = obj.comments.filter(is_approved=True)
         return BlogCommentSerializer(comments, many=True, context=self.context).data
+    
+    def get_images(self, obj):
+        """Get all images for this post (ordered)"""
+        images = obj.images.all().order_by('order', 'created_at')
+        return BlogPostImageSerializer(images, many=True, context=self.context).data
 
 
 class BlogPostAdminSerializer(serializers.ModelSerializer):
@@ -456,6 +494,83 @@ class BlogPostLikeStatusView(APIView):
             'liked': liked,
             'like_count': post.like_count
         })
+
+
+# ============================================================================
+# ADMIN IMAGE MANAGEMENT
+# ============================================================================
+
+class BlogPostImageListCreateView(APIView):
+    """Admin: list images for a post or upload new ones"""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, post_id):
+        post = get_object_or_404(BlogPost, pk=post_id)
+        images = post.images.all().order_by('order', 'created_at')
+        serializer = BlogPostImageSerializer(images, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def post(self, request, post_id):
+        post = get_object_or_404(BlogPost, pk=post_id)
+
+        uploaded_files = []
+        images_field = request.FILES.getlist('images')
+        if images_field:
+            uploaded_files = images_field
+        else:
+            # Also check for single 'image' key
+            single = request.FILES.get('image')
+            if single:
+                uploaded_files = [single]
+
+        if not uploaded_files:
+            return Response({'error': 'No image files provided. Use multipart form key "images" (multi) or "image" (single).'},
+                          status=status.HTTP_400_BAD_REQUEST)
+
+        # Determine starting order
+        last_order = post.images.aggregate(max_order=models.Max('order'))['max_order'] or -1
+
+        created = []
+        for i, img_file in enumerate(uploaded_files):
+            blog_img = BlogPostImage(
+                post=post,
+                image=img_file,
+                caption=request.data.get('caption', ''),
+                order=last_order + i + 1,
+            )
+            blog_img.save()  # save() triggers compression + thumbnail
+            created.append(blog_img)
+
+        serializer = BlogPostImageSerializer(created, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class BlogPostImageDetailView(APIView):
+    """Admin: update caption/order or delete a single image"""
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, image_id):
+        img = get_object_or_404(BlogPostImage, pk=image_id)
+        caption = request.data.get('caption')
+        order = request.data.get('order')
+
+        if caption is not None:
+            img.caption = caption
+        if order is not None:
+            try:
+                img.order = int(order)
+            except (ValueError, TypeError):
+                return Response({'error': 'order must be an integer'}, status=status.HTTP_400_BAD_REQUEST)
+
+        img.save(update_fields=[f for f in ['caption', 'order'] if request.data.get(f) is not None])
+        serializer = BlogPostImageSerializer(img, context={'request': request})
+        return Response(serializer.data)
+
+    def delete(self, request, image_id):
+        img = get_object_or_404(BlogPostImage, pk=image_id)
+        post_id = img.post_id
+        img.delete()
+        return Response({'message': 'Image deleted', 'post_id': post_id}, status=status.HTTP_204_NO_CONTENT)
 
 
 # Need to import models for the Q filter

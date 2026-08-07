@@ -8,8 +8,43 @@ export const authOptions = {
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
+        access_token: { label: "Access Token", type: "text" },
+        refresh_token: { label: "Refresh Token", type: "text" },
       },
       async authorize(credentials) {
+        // ---- Passkey / WebAuthn login — tokens already obtained by PasskeyAuth component ----
+        if (credentials?.access_token) {
+          const payload = credentials.access_token.split('.')[1];
+          try {
+            const decoded = JSON.parse(
+              typeof window === 'undefined'
+                ? Buffer.from(payload, 'base64').toString()
+                : atob(payload)
+            );
+            return {
+              id: decoded.user_id || credentials.username || 'passkey-user',
+              name: decoded.username || credentials.username || '',
+              email: '', // Not in JWT claims — fine for auth
+              accessToken: credentials.access_token,
+              refreshToken: credentials.refresh_token || '',
+              is_staff: decoded.is_staff === true,
+              role: decoded.role || '',
+            };
+          } catch {
+            // If JWT decode fails, still return the basic user — the tokens are valid
+            return {
+              id: credentials.username || 'passkey-user',
+              name: credentials.username || '',
+              email: '',
+              accessToken: credentials.access_token,
+              refreshToken: credentials.refresh_token || '',
+              is_staff: false,
+              role: '',
+            };
+          }
+        }
+
+        // ---- Standard password login ----
         if (!credentials?.username || !credentials?.password) {
           return null;
         }

@@ -580,6 +580,130 @@ class BlogPost(models.Model):
         return minutes
 
 
+class BlogPostImage(models.Model):
+    """Images for a blog post — first image is hero, rest appear in carousel"""
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(
+        upload_to='blog_images/',
+        help_text="Full-size image (auto-compressed to WebP on save)"
+    )
+    compressed = models.ImageField(
+        upload_to='blog_images/compressed/',
+        null=True, blank=True,
+        help_text="Compressed WebP version (max 1920px wide)"
+    )
+    thumbnail = models.ImageField(
+        upload_to='blog_images/thumbnails/',
+        null=True, blank=True,
+        help_text="Small thumbnail for carousel dots / list preview (400px wide)"
+    )
+    caption = models.CharField(max_length=500, blank=True, help_text="Optional image caption")
+    order = models.PositiveIntegerField(default=0, help_text="Display order (0 = first / hero)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['post', 'order']),
+        ]
+        verbose_name = "Blog Image"
+        verbose_name_plural = "Blog Images"
+
+    def __str__(self):
+        return f"Image {self.order} for {self.post.title}"
+
+    def save(self, *args, **kwargs):
+        """Auto-compress image and generate thumbnail on save"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Compress and generate thumbnail after the file is saved to disk
+        if self.image and hasattr(self.image, 'path'):
+            try:
+                self._compress_and_thumbnail()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"BlogPostImage compression failed: {e}")
+
+    def _compress_and_thumbnail(self):
+        """Compress the uploaded image to WebP and generate a thumbnail"""
+        from PIL import Image as PILImage
+        import os
+
+        img_path = self.image.path
+        img = PILImage.open(img_path)
+
+        # Convert RGBA/P to RGB
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+
+        # --- Full-size compressed (max 1920px wide) ---
+        compressed_img = img.copy()
+        if compressed_img.width > 1920:
+            ratio = 1920 / compressed_img.width
+            new_size = (1920, int(compressed_img.height * ratio))
+            compressed_img = compressed_img.resize(new_size, PILImage.LANCZOS)
+
+        compressed_dir = os.path.dirname(self.image.path).replace('blog_images', 'blog_images/compressed')
+        # Actually use the compressed field's storage path
+        base = os.path.splitext(os.path.basename(self.image.name))[0]
+        compressed_name = f"{base}_compressed.webp"
+
+        # Save compressed
+        from django.core.files.base import ContentFile
+        from io import BytesIO
+        buffer = BytesIO()
+        compressed_img.save(buffer, format='WEBP', quality=82, optimize=True)
+        buffer.seek(0)
+
+        if self.compressed:
+            self.compressed.delete(save=False)
+        self.compressed.save(
+            compressed_name,
+            ContentFile(buffer.read()),
+            save=False
+        )
+
+        # --- Thumbnail (max 400px wide) ---
+        thumb_img = img.copy()
+        if thumb_img.width > 400:
+            ratio = 400 / thumb_img.width
+            new_size = (400, int(thumb_img.height * ratio))
+            thumb_img = thumb_img.resize(new_size, PILImage.LANCZOS)
+
+        thumb_name = f"{base}_thumb.webp"
+        buffer2 = BytesIO()
+        thumb_img.save(buffer2, format='WEBP', quality=75, optimize=True)
+        buffer2.seek(0)
+
+        if self.thumbnail:
+            self.thumbnail.delete(save=False)
+        self.thumbnail.save(
+            thumb_name,
+            ContentFile(buffer2.read()),
+            save=False
+        )
+
+        # Update without recursing
+        type(self).objects.filter(pk=self.pk).update(
+            compressed=self.compressed.name,
+            thumbnail=self.thumbnail.name,
+        )
+
+    def delete(self, *args, **kwargs):
+        """Clean up files on delete"""
+        for field in ['image', 'compressed', 'thumbnail']:
+            f = getattr(self, field, None)
+            if f and hasattr(f, 'path'):
+                try:
+                    import os
+                    if os.path.isfile(f.path):
+                        os.remove(f.path)
+                except Exception:
+                    pass
+        super().delete(*args, **kwargs)
+
+
 class BlogComment(models.Model):
     """Comments on blog posts - any authenticated user can comment"""
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
@@ -1305,3 +1429,61 @@ class ContentReport(models.Model):
         self.moderation_notes = notes
         self.resolved_at = timezone.now()
         self.save()
+
+
+# ============================================================
+# Passkeys / WebAuthn — Biometric authentication credentials
+# ============================================================
+class PasskeyCredential(models.Model):
+    """Stores WebAuthn credentials for passwordless biometric login."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='passkey_credentials',
+        help_text="The user who owns this passkey",
+    )
+    credential_id = models.CharField(
+        max_length=512,
+        unique=True,
+        help_text="Base64URL-encoded credential ID from the authenticator",
+    )
+    credential_public_key = models.TextField(
+        help_text="PEM-encoded public key for signature verification",
+    )
+    sign_count = models.IntegerField(
+        default=0,
+        help_text="Signature counter — incremented each time the authenticator is used",
+    )
+    transports = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Authenticator transport methods (e.g., ['internal', 'hybrid', 'usb'])",
+    )
+    device_name = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="User-friendly name for this passkey (e.g., 'iPhone 15', 'YubiKey 5C')",
+    )
+    backed_up = models.BooleanField(
+        default=False,
+        help_text="Whether this credential is backed up (multi-device sync)",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this passkey was registered",
+    )
+    last_used_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this passkey was last used to authenticate",
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Passkey Credential'
+        verbose_name_plural = 'Passkey Credentials'
+
+    def __str__(self):
+        device = self.device_name or 'Unknown device'
+        return f"{self.user.username} — {device} ({self.created_at.strftime('%Y-%m-%d')})"

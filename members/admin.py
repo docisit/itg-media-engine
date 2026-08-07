@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.db.models import Count, Q, Max
 from datetime import timedelta
 from django.conf import settings
-from .models import Profile, Show, GuestRequest, MediaAsset, Vote, ContactInquiry, JoinRequest, BlogPost, BlogComment, StreamingPlatform, StreamingSession
+from .models import Profile, Show, GuestRequest, MediaAsset, Vote, ContactInquiry, JoinRequest, BlogPost, BlogComment, BlogPostImage, StreamingPlatform, StreamingSession
 from .avatar_admin import *  # Register avatar models
 from .chat_admin import *    # Register site chat models (SiteChatConfig, SiteChatFAQ, etc.)
 
@@ -260,6 +260,7 @@ class BlogPostAdmin(admin.ModelAdmin):
         }),
     )
     
+    inlines = [BlogPostImageInline]
     actions = ['publish_posts', 'unpublish_posts']
     
     def publish_posts(self, request, queryset):
@@ -279,6 +280,16 @@ class BlogPostAdmin(admin.ModelAdmin):
         if not obj.author_id and not change:
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
+
+class BlogPostImageInline(admin.TabularInline):
+    """Inline image management inside BlogPost admin"""
+    model = BlogPostImage
+    extra = 1
+    fields = ['image', 'caption', 'order']
+    ordering = ['order', 'created_at']
+    verbose_name = "Image"
+    verbose_name_plural = "Additional Images (carousel)"
 
 
 @admin.register(BlogComment)
